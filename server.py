@@ -1,23 +1,43 @@
-from flask import Flask, render_template, send_file
-from flask_cors import CORS
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+from udp_audio_receiver import udp_audio_receiver
+import os
+import asyncio
+import threading
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-audio_file1 = 'files/source/output1.wav'
-audio_file2 = 'files/source/output2.wav'
+template_dir = os.environ.get('TEMPLATE_DIR', 'templates')
+templates = Jinja2Templates(directory=template_dir)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+audio_file1 = os.environ.get('AUDIO_PATH_OUTPUT1')
+audio_file2 = os.environ.get('AUDIO_PATH_OUTPUT2')
 
-@app.route('/audio1')
-def audio_stream1():
-    return send_file(audio_file1, mimetype='audio/wav')
+def start_udp_receiver():
+    print("Initializing the UDP receiver...")
+    asyncio.run(udp_audio_receiver())
 
-@app.route('/audio2')
-def audio_stream2():
-    return send_file(audio_file2, mimetype='audio/wav')
+threading.Thread(target=start_udp_receiver, daemon=True).start()
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+@app.get("/")
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/audio1")
+async def audio_stream1():
+    return FileResponse(audio_file1, media_type='audio/wav')
+
+@app.get("/audio2")
+async def audio_stream2():
+    return FileResponse(audio_file2, media_type='audio/wav')
+
+#Project commando execution "uvicorn server:app --host 0.0.0.0 --port 5000"

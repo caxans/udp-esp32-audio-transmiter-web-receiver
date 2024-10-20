@@ -3,8 +3,11 @@
 
 const char* ssid = ""; //Wifi SSID
 const char* password = ""; //Wifi password
+const char* host = ""; //Domain
+unsigned int port = 12345; //Port
 
-WiFiUDP Udp; 
+WiFiUDP Udp;
+IPAddress remoteIP;
 
 void setup() {
   Serial.begin(115200);
@@ -15,19 +18,18 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
+  Serial.println("WiFi connected");
 
-  IPAddress Ip(192, 168, 1, 180);
-  IPAddress Gateway(192, 168, 1, 1);
-  IPAddress Subnet(255, 255, 255, 0);
-  WiFi.config(Ip, Gateway, Subnet);
-
-  Serial.println("");
-  Serial.println("WiFi conectado");
-  Serial.println(WiFi.localIP());
+  if (WiFi.hostByName(host, remoteIP)) {
+    Serial.println("Resolved domain: " + String(remoteIP));
+  } else {
+    Serial.println("Error resolving domain");
+  }
 }
 
 void loop() {
-  Udp.beginPacket(IPAddress(192, 168, 1, 8), 1234);
+  //Udp.beginPacket(IPAddress(192, 168, 1, 8), port); //Local execution
+  Udp.beginPacket(remoteIP, port);
 
   for (int i = 0; i < 1024; i++) {
     int old = micros();

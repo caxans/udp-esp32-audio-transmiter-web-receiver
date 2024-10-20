@@ -47,3 +47,8 @@ uvicorn server:app --host 0.0.0.0 --port 5000
 Note: The command path execution must be the "server.py" file
 
 4. If the command print errors, it could be a Python dependencies, the solution is install the requirements
+
+## Hardware connections
+![Testing conections](imagen1.jpg)
+
+![Esp32 conections](imagen2.jpg)

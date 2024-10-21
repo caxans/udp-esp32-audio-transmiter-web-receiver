@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from udp_audio_receiver import udp_audio_receiver
@@ -39,5 +39,9 @@ async def audio_stream1():
 @app.get("/audio2")
 async def audio_stream2():
     return FileResponse(audio_file2, media_type='audio/wav')
+
+@app.exception_handler(404)
+async def not_found(request, exc):
+    return RedirectResponse(url="/")
 
 #Project commando execution "uvicorn server:app --host 0.0.0.0 --port 5000"
